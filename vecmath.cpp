@@ -17,4 +17,11 @@ int main() {
 	std::cout << a ++ << std::endl << a << std::endl;
 	
 	a[1] ++;
+
+	
+	std::cout << sin(a) << std::endl;
+
+	exp(a);
+	exp2(a);
+
 }
