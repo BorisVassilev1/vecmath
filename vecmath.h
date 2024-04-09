@@ -9,42 +9,74 @@
 #include <iostream>
 #include <utility>
 #include <cstring>
-#include <math.h>
+#include <cmath>
 
 namespace vecmath {
-	template<int dim, class T> requires (dim >= 2)
-		class vec {
-			private: 
-				T v[dim];
-			public:
-				vec();
+template<int dim, class T> requires (dim >= 2)
+class vec {
+   private: 
+	T v[dim];
+   public:
+	vec();
 
-				template<class ... Args>
-					vec(const Args & ... vals) requires (sizeof...(vals) == dim && (std::is_convertible_v<Args, T> && ...));
-				
+	template<class ... Args>
+		vec(const Args & ... vals) requires (sizeof...(vals) == dim && (std::is_convertible_v<Args, T> && ...));
+	
 
-				vec(const T &val);
+	vec(const T &val);
 
-				vec(const vec<dim, T> &other) {
-					*this = other;
-				}
+	vec(const vec<dim, T> &other) {
+		*this = other;
+	}
 
-				friend std::ostream & operator << <>(std::ostream &out, const vec &v);
-				friend std::istream & operator >> <>(std::istream &in, vec &v);
+	friend std::ostream & operator << <>(std::ostream &out, const vec<dim, T> &v);
+	friend std::istream & operator >> <>(std::istream &in, vec<dim, T> &v);
 
-				vec<dim, T> &operator = (const vec<dim, T> &other) {
-					std::copy(other.v, other.v + dim, v);
-					return *this;
-				}
+	vec<dim, T> &operator = (const vec<dim, T> &other) {
+		std::copy(other.v, other.v + dim, v);
+		return *this;
+	}
 
-				T &operator [] (const int &index) {
-					return v[index];
-				}
+	T &operator [] (const int &index) {
+		return v[index];
+	}
 
-				const T &operator [] (const int &index) const {
-					return v[index];
-				}
-		};
+	const T &operator [] (const int &index) const {
+		return v[index];
+	}
+	
+	inline T& x() { return operator[](0); }
+	inline T& y() { return operator[](1); }
+	inline T& z() requires (dim >= 3) { return operator[](2); }
+	inline T& w() requires (dim >= 4) { return operator[](3); }
+
+	inline const T& x() const { return operator[](0); }
+	inline const T& y() const { return operator[](1); }
+	inline const T& z() const requires (dim >= 3) { return operator[](2); }
+	inline const T& w() const requires (dim >= 4) { return operator[](3); }
+
+	inline T& r() { return operator[](0); }
+	inline T& g() { return operator[](1); }
+	inline T& b() requires (dim >= 3) { return operator[](2); }
+	inline T& a() requires (dim >= 4) { return operator[](3); }
+
+	inline const T& r() const { return operator[](0); }
+	inline const T& g() const { return operator[](1); }
+	inline const T& b() const requires (dim >= 3) { return operator[](2); }
+	inline const T& a() const requires (dim >= 4) { return operator[](3); }
+};
+
+using vec3 = vec<3, float>;
+using vec3f = vec<3, float>;
+using vec3d = vec<3, double>;
+using vec3i = vec<3, int>;
+using vec3ui = vec<3, unsigned int>;
+
+using vec2 = vec<2, float>;
+using vec2f = vec<2, float>;
+using vec2d = vec<2, double>;
+using vec2i = vec<2, int>;
+using vec2ui = vec<2, unsigned int>;
 }
 
 
@@ -52,7 +84,7 @@ namespace vecmath {
  *	###############################################################
  *	default constructor
  * */
-template<int dim, class T>
+template<int dim, class T> requires (dim >= 2)
 vecmath::vec<dim, T>::vec() {
 	[&]<std::size_t...p>(std::index_sequence<p...>) {
 		((v[p] = T()) , ... );
@@ -64,7 +96,7 @@ vecmath::vec<dim, T>::vec() {
  *	###############################################################
  *	constructor from all values
  * */
-template<int dim, class T>
+template<int dim, class T> requires (dim >= 2)
 template<class ... Args>
 vecmath::vec<dim, T>::vec(const Args & ... vals) requires (sizeof...(vals) == dim && (std::is_convertible_v<Args, T> && ...)){
 	[&]<std::size_t...p>(std::index_sequence<p...>) {
@@ -73,7 +105,7 @@ vecmath::vec<dim, T>::vec(const Args & ... vals) requires (sizeof...(vals) == di
 	(std::make_index_sequence<dim>{});
 }
 
-template<int dim, class T>
+template<int dim, class T> requires (dim >= 2)
 vecmath::vec<dim, T>::vec(const T &val) {
 	[&]<std::size_t...p>(std::index_sequence<p...>) {
 		((v[p] = val), ...);
@@ -275,9 +307,9 @@ bool operator >= (const vecmath::vec<dim, T> &a, const vecmath::vec<dim, T> &b) 
  * */
 template<int dim, class T>	
 std::ostream &operator << (std::ostream &out, const vecmath::vec<dim, T> &v) {
-	out << "vec<dim = " << dim << ", T = " << typeid(T).name() << "> ( ";
+	out << "vec<" << dim << ", " << typeid(T).name() << ">(";
 	[&]<std::size_t...p>(std::index_sequence<p...>) {
-		((out << v.v[p] << " ") , ... );
+		((out << (p ? ", " : "") << v.v[p]) , ... );
 	}
 	(std::make_index_sequence<dim>{});
 	out << ")";
@@ -422,9 +454,6 @@ vecmath::vec<dim, T> floor(vecmath::vec<dim, T> &v) { return apply(v, std::floor
 
 template<int dim, class T>
 vecmath::vec<dim, T> ceil(vecmath::vec<dim, T> &v) { return apply(v, std::ceil); }
-
-
-
 
 
 #endif
